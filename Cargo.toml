@@ -8,13 +8,15 @@ edition = "2018"
 name = "coap-server"
 path = "src/main.rs"
 
+[[bin]]
+name = "coap-client"
+path = "src/client.rs"
+
 [dependencies]
-actix = "0.8"
-tokio = "0.1"
-tokio-codec = "0.1"
-futures = "0.1"
-bytes = "0.4"
-env_logger = "0.6"
+async-coap = "0.1"
+async-coap-tokio = "0.1"
+tokio = "0.2.0-alpha.4"
+futures-preview = { version = "=0.3.0-alpha.18", features = ["async-await", "nightly"] }
 openssl = { version="0.10" }
 
 
