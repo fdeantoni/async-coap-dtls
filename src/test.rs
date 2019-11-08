@@ -20,7 +20,6 @@ fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> 
 
 use std::net::UdpSocket;
 use tokio::executor::spawn;
-use tokio::prelude::*;
 
 use std::io::{Read, Write};
 use std::thread;
@@ -59,16 +58,7 @@ async fn main() {
         loop {
             let mut buf = [0; 5];
 
-            match server.read_exact(&mut buf).await {
-                Ok(n) if n == 0 => return,
-                Ok(n) => n,
-                Err(e) => {
-                    println!("failed to read from socket; err = {:?}", e);
-                    return;
-                }
-            }
-
-            //server.read_exact(&mut buf).expect("Could not read server buffer!");
+            server.read_exact(&mut buf).expect("Could not read server buffer!");
 
             let received = std::str::from_utf8(&buf).unwrap();
 
