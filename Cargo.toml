@@ -12,11 +12,18 @@ path = "src/main.rs"
 name = "coap-client"
 path = "src/client.rs"
 
+[[bin]]
+name = "test"
+path = "src/test.rs"
+
 [dependencies]
 async-coap = "0.1"
 async-coap-tokio = "0.1"
-tokio = "0.2.0-alpha.4"
+tokio = "0.2.0-alpha.5"
 futures-preview = { version = "=0.3.0-alpha.18", features = ["async-await", "nightly"] }
-openssl = { version="0.10" }
 
+openssl = { version="0.10" }
+#tokio-openssl = "0.2.1"
+#tokio-codec = "0.2.0-alpha.5"
+#bytes = "0.4"
 
