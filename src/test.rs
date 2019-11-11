@@ -20,10 +20,11 @@ fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> 
 
 use std::net::UdpSocket;
 use tokio::executor::spawn;
+use tokio_openssl::*;
 
-use std::io::{Read, Write};
 use std::thread;
 use std::time::Duration;
+use tokio_io::{AsyncReadExt, AsyncWriteExt};
 
 pub mod udp;
 
@@ -51,14 +52,15 @@ async fn main() {
     );
 
     spawn(async move {
-        let mut server = acceptor.accept(server_channel).unwrap();
+        //let mut server = acceptor.accept(server_channel).unwrap();
+        let mut server = accept(&acceptor, server_channel).await.unwrap();
 
         let mut count = 0;
 
         loop {
             let mut buf = [0; 5];
 
-            server.read_exact(&mut buf).expect("Could not read server buffer!");
+            server.read_exact(&mut buf).await.unwrap();
 
             let received = std::str::from_utf8(&buf).unwrap();
 
@@ -69,14 +71,14 @@ async fn main() {
         }
     });
 
-    let connector = ssl_connector().unwrap();
+    let connector = ssl_connector().unwrap().configure().unwrap();
 
-    let mut client = connector.connect("example.net", client_channel).unwrap();
+    let mut client = connect(connector, "example.net", client_channel).await.unwrap();
 
     loop {
 
         let buf = b"hello";
-        client.write_all(buf).expect("Could not write client buffer!");
+        client.write_all(buf).await.unwrap();
 
         thread::sleep(Duration::from_millis(30));
     }

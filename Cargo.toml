@@ -23,7 +23,8 @@ tokio = "0.2.0-alpha.5"
 futures-preview = { version = "=0.3.0-alpha.18", features = ["async-await", "nightly"] }
 
 openssl = { version="0.10" }
-#tokio-openssl = "0.2.1"
+tokio-openssl = "0.4.0-alpha.5"
+tokio-io = "0.2.0-alpha.5"
 #tokio-codec = "0.2.0-alpha.5"
 #bytes = "0.4"
 

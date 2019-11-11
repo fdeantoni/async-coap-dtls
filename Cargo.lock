@@ -9,6 +9,8 @@ dependencies = [
  "futures-preview 0.3.0-alpha.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.10.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-io 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-openssl 0.4.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -979,6 +981,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-openssl"
+version = "0.4.0-alpha.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "openssl 0.10.25 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-io 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "tokio-sync"
 version = "0.2.0-alpha.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1197,6 +1208,7 @@ dependencies = [
 "checksum tokio-io 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0aeaf26040975e7073240933f6048ea845fc0d2f814f89544a8d68a9c487b882"
 "checksum tokio-macros 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "b02b0260e8187159159c191c8de31725274b2d37ddb7a7efed4b22988b35ac45"
 "checksum tokio-net 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "812d4903f9b6e91ca1d3fb9e2acb30f5c0881502f5410b9c947136aa8f3d9a6b"
+"checksum tokio-openssl 0.4.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "b236e62bf726fddf1a9cbe0f337bd936d379b88ff474ea89a7ea318a0bf204e8"
 "checksum tokio-sync 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "8acfd5281a590399968771fb03ee104be3df2519fbca609c0a38c467458e1467"
 "checksum tokio-timer 0.3.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6dfc753b6771a6aff4de8ea6a704044488d2c2918e161a0266a8eb7ad53a1a2e"
 "checksum tracing 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "ff4e4f59e752cb3beb5b61c6d5e11191c7946231ba84faec2902c9efdd8691c5"

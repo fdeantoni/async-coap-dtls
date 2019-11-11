@@ -1,6 +1,11 @@
-use std::io::{Error, Read, Result, Write};
-use std::net::{SocketAddr, UdpSocket};
-use std::result;
+use std::io::Result;
+use std::net::SocketAddr;
+
+use std::net::UdpSocket;
+use tokio_io::{AsyncRead,AsyncWrite};
+use futures::task::Context;
+use std::pin::Pin;
+use futures::Poll;
 
 #[derive(Debug)]
 pub struct UdpChannel {
@@ -8,19 +13,24 @@ pub struct UdpChannel {
     remote_addr: SocketAddr,
 }
 
-impl Read for UdpChannel {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        self.socket.recv(buf)
+impl AsyncRead for UdpChannel {
+    fn poll_read(self: Pin<&mut Self>, _: &mut Context<'_>, buf: &mut [u8]) -> Poll<Result<usize>> {
+        Poll::from(self.socket.recv(buf))
     }
 }
 
-impl Write for UdpChannel {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        self.socket.send_to(buf, self.remote_addr)
+impl AsyncWrite for UdpChannel {
+    fn poll_write(self: Pin<&mut Self>, _: &mut Context<'_>, buf: &[u8]) -> Poll<Result<usize>> {
+        let addr = self.remote_addr;
+        Poll::from(self.socket.send_to(buf, addr))
     }
 
-    fn flush(&mut self) -> result::Result<(), Error> {
-        Ok(())
+    fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::from(Ok(()))
+    }
+
+    fn poll_shutdown(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<()>> {
+        Poll::from(Ok(()))
     }
 }
 
