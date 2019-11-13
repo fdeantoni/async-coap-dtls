@@ -18,7 +18,7 @@ fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> 
     Ok(acceptor)
 }
 
-use std::net::{UdpSocket, TcpListener};
+use std::net::UdpSocket;
 use tokio::executor::spawn;
 use tokio_openssl::*;
 
@@ -31,8 +31,6 @@ pub mod udp;
 #[tokio::main]
 async fn main() {
 
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-
     let certificate = String::from("test/cert.pem");
     let key = String::from("test/key.pem");
     let acceptor = ssl_acceptor(&certificate, &key).unwrap();
@@ -44,12 +42,12 @@ async fn main() {
     let client_addr = client.local_addr().unwrap();
 
     let server_channel = udp::UdpChannel::new(
-        server,
+        server.try_clone().unwrap(),
         client_addr
     );
 
     let client_channel = udp::UdpChannel::new(
-        client,
+        client.try_clone().unwrap(),
         server_addr
     );
 
