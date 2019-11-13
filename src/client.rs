@@ -10,6 +10,8 @@ use std::str::FromStr;
 
 pub mod dtls;
 use dtls::connector::DtlsConnectorSocket;
+use futures::executor::LocalPool;
+use futures::task::LocalSpawnExt;
 
 fn ssl_connector() -> Result<SslConnector, std::io::Error> {
     let mut builder = SslConnector::builder(SslMethod::dtls())?;
@@ -29,7 +31,8 @@ async fn main() {
 
     // Add our local endpoint to the pool, so that it
     // can receive packets.
-    spawn(
+    let mut pool = LocalPool::new();
+    pool.spawner().spawn_local(
         local_endpoint
             .clone()
             .receive_loop_arc(null_receiver!())
@@ -44,26 +47,36 @@ async fn main() {
 
     let server_address = SocketAddr::from_str("127.0.0.1:10000").unwrap();
 
+     let result = pool.run_until(
+        client_endpoint.send(
+         "127.0.0.1:10000",
+         CoapRequest::get()       // This is a CoAP GET request
+             .emit_any_response() // Return the first response we get
+       )
+     );
+
+    println!("result: {:?}", result);
+
     // Create a remote endpoint instance to represent the
     // device we wish to interact with.
-    let remote_endpoint = client_endpoint
-        .remote_endpoint_from_uri(uri!("coap://127.0.0.1:10000"))
-        .expect("Unacceptable scheme or authority in URL");
-
-    // Create a future that sends a request to a specific path
-    // on the remote endpoint, collecting any blocks in the response
-    // and returning `Ok(OwnedImmutableMessage)` upon success.
-    let future = remote_endpoint.send_to(
-        rel_ref!("test"),
-        CoapRequest::get() // This is a CoAP GET request
-            .accept(ContentFormat::TEXT_PLAIN_UTF8) // We only want plaintext
-            .emit_any_response(),
-//            .block2(Some(Default::default())) // Enable block2 processing
-//            .emit_successful_collected_response(), // Collect all blocks
-    );
+//    let remote_endpoint = client_endpoint
+//        .remote_endpoint_from_uri(uri!("coap://coap.me"))
+//        .expect("Unacceptable scheme or authority in URL");
+//
+//    // Create a future that sends a request to a specific path
+//    // on the remote endpoint, collecting any blocks in the response
+//    // and returning `Ok(OwnedImmutableMessage)` upon success.
+//    let future = remote_endpoint.send_to(
+//        rel_ref!("test"),
+//        CoapRequest::get() // This is a CoAP GET request
+//            .accept(ContentFormat::TEXT_PLAIN_UTF8) // We only want plaintext
+//            .emit_any_response(),
+////            .block2(Some(Default::default())) // Enable block2 processing
+////            .emit_successful_collected_response(), // Collect all blocks
+//    );
 
     // Wait until we get the result of our request.
-    let result = future.await;
+//    let result = future.await;
 
     assert!(result.is_ok(), "Error: {:?}", result.err().unwrap());
 }

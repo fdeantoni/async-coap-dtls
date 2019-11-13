@@ -130,7 +130,8 @@ impl AsyncSendTo for DtlsAcceptorSocket {
             B: ToSocketAddrs<SocketAddr = Self::SocketAddr, Error = Self::Error>,
     {
         if let Some(addr) = addr.to_socket_addrs()?.next() {
-            println!("In acceptor poll_send_to {:?}: {:?}", addr, buf);
+            let decoded = String::from_utf8_lossy(buf);
+            println!("In acceptor poll_send_to {:?}: {:?}", addr, decoded);
             match self.send(buf, addr) {
                 Ok(written) => Poll::Ready(Ok(written)),
                 Err(e) => {
