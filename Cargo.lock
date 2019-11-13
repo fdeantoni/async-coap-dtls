@@ -7,6 +7,7 @@ dependencies = [
  "async-coap 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "async-coap-tokio 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-preview 0.3.0-alpha.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures-timer 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.10.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-io 0.2.0-alpha.5 (registry+https://github.com/rust-lang/crates.io-index)",
