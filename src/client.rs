@@ -58,5 +58,5 @@ async fn main() {
     let result: OwnedImmutableMessage = future.await.unwrap();
     let payload = String::from_utf8_lossy(result.payload());
 
-    println!("result: {:?}", payload);
+    println!("result: {:?}", payload.trim_end_matches(char::from(0)));
 }
