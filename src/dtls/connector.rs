@@ -5,9 +5,7 @@ use std::pin::Pin;
 
 use std::collections::HashMap;
 use openssl::ssl::{SslStream, SslConnector};
-use tokio_openssl::*;
 
-use std::io::{Read, Write};
 use std::result;
 use async_coap::datagram::{AsyncDatagramSocket, DatagramSocketTypes, AsyncSendTo, AsyncRecvFrom, MulticastSocket};
 use async_coap::{ALL_COAP_DEVICES_HOSTNAME, ToSocketAddrs};
@@ -15,11 +13,12 @@ use std::collections::hash_map::Entry;
 use std::sync::{Arc, RwLock};
 
 use super::channel::UdpChannel;
+use super::socket::DtlsSocket;
 
 pub struct DtlsConnectorSocket {
     local_socket: UdpSocket,
     connector: SslConnector,
-    channels: Arc<RwLock<HashMap<SocketAddr, Arc<RwLock<SslStream<UdpChannel>>>>>>
+    streams: Arc<RwLock<HashMap<SocketAddr, Arc<RwLock<SslStream<UdpChannel>>>>>>
 }
 
 impl DtlsConnectorSocket {
@@ -32,14 +31,22 @@ impl DtlsConnectorSocket {
             DtlsConnectorSocket {
                 local_socket,
                 connector,
-                channels: Arc::new(RwLock::new(HashMap::new()))
+                streams: Arc::new(RwLock::new(HashMap::new()))
             }
         )
     }
 
+}
+
+impl DtlsSocket for DtlsConnectorSocket {
+
+    fn get_socket(&self) -> UdpSocket {
+        self.local_socket.try_clone().unwrap()
+    }
+
     fn get_channel(&self, remote_addr: SocketAddr) -> Arc<RwLock<SslStream<UdpChannel>>> {
         println!("Getting connector channel for {:?}", remote_addr);
-        let channel = match self.channels.write().unwrap().entry(remote_addr.clone()) {
+        let channel = match self.streams.write().unwrap().entry(remote_addr.clone()) {
             Entry::Vacant(entry) => {
                 println!("No entry found, creating new one...");
                 let socket = self.local_socket.try_clone().unwrap();
@@ -59,28 +66,6 @@ impl DtlsConnectorSocket {
         };
         println!("Got connector channel {:?}", channel);
         channel
-    }
-
-    fn send(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, std::io::Error> {
-        println!("In connector send....");
-        let channel = self.get_channel(addr);
-        channel.clone().write().unwrap().write(buf)
-    }
-
-    fn receive(&self, buf: & mut [u8]) -> Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> {
-        println!("In connector receive...");
-        let mut status: Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> = Poll::Pending;
-        for (addr, channel) in self.channels.write().unwrap().iter_mut() {
-            channel.clone().write().unwrap().read(buf);
-            if buf.len() > 0 {
-                let decoded = String::from_utf8_lossy(buf);
-                println!("In connector receive {:?}: {:?}", addr, decoded);
-                status = Poll::Ready(Ok((buf.len(), addr.clone(), None)))
-            } else {
-                break
-            }
-        }
-        status
     }
 }
 
@@ -137,6 +122,8 @@ impl AsyncSendTo for DtlsConnectorSocket {
             B: ToSocketAddrs<SocketAddr = Self::SocketAddr, Error = Self::Error>,
     {
         if let Some(addr) = addr.to_socket_addrs()?.next() {
+            let decoded = String::from_utf8_lossy(buf);
+            println!("In acceptor poll_send_to {:?}: {:?}", addr, decoded);
             match self.send(buf, addr) {
                 Ok(written) => Poll::Ready(Ok(written)),
                 Err(e) => {
@@ -160,6 +147,7 @@ impl AsyncSendTo for DtlsConnectorSocket {
             B: ToSocketAddrs<SocketAddr = Self::SocketAddr, Error = Self::Error>,
     {
         if let Some(addr) = addr.to_socket_addrs()?.next() {
+            println!("In acceptor send_to {:?}: {:?}", addr, buf);
             self.send(buf, addr)
         } else {
             Err(std::io::Error::new(
@@ -193,7 +181,6 @@ impl MulticastSocket for DtlsConnectorSocket {
         unimplemented!()
     }
 }
-
 
 
 

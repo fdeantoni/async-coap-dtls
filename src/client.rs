@@ -1,17 +1,13 @@
 use async_coap::prelude::*;
-use async_coap::datagram::{DatagramLocalEndpoint, DatagramSocketTypes};
+use async_coap::datagram::DatagramLocalEndpoint;
 use async_coap_tokio::TokioAsyncUdpSocket;
 use futures::prelude::*;
 use std::sync::Arc;
 use tokio::executor::spawn;
-use openssl::ssl::{SslAcceptor, SslConnector, SslMethod, SslVerifyMode, SslFiletype};
-use std::net::SocketAddr;
-use std::str::FromStr;
+use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
 
 pub mod dtls;
 use dtls::connector::DtlsConnectorSocket;
-use futures::executor::LocalPool;
-use futures::task::LocalSpawnExt;
 use async_coap::message::{OwnedImmutableMessage, MessageRead};
 
 fn ssl_connector() -> Result<SslConnector, std::io::Error> {

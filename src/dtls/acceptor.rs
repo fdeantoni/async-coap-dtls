@@ -6,7 +6,6 @@ use std::pin::Pin;
 use std::collections::HashMap;
 use openssl::ssl::{SslStream, SslAcceptor};
 
-use std::io::{Read, Write};
 use std::result;
 use async_coap::datagram::{AsyncDatagramSocket, DatagramSocketTypes, AsyncSendTo, AsyncRecvFrom, MulticastSocket};
 use async_coap::{ALL_COAP_DEVICES_HOSTNAME, ToSocketAddrs};
@@ -14,11 +13,12 @@ use std::collections::hash_map::Entry;
 use std::sync::{Arc, RwLock};
 
 use super::channel::UdpChannel;
+use crate::dtls::socket::DtlsSocket;
 
 pub struct DtlsAcceptorSocket {
     local_socket: UdpSocket,
     acceptor: SslAcceptor,
-    channels: Arc<RwLock<HashMap<SocketAddr, Arc<RwLock<SslStream<UdpChannel>>>>>>
+    streams: Arc<RwLock<HashMap<SocketAddr, Arc<RwLock<SslStream<UdpChannel>>>>>>
 }
 
 impl DtlsAcceptorSocket {
@@ -31,14 +31,21 @@ impl DtlsAcceptorSocket {
             DtlsAcceptorSocket {
                 local_socket,
                 acceptor,
-                channels: Arc::new(RwLock::new(HashMap::new()))
+                streams: Arc::new(RwLock::new(HashMap::new()))
             }
         )
+    }
+}
+
+impl DtlsSocket for DtlsAcceptorSocket {
+
+    fn get_socket(&self) -> UdpSocket {
+        self.local_socket.try_clone().unwrap()
     }
 
     fn get_channel(&self, remote_addr: SocketAddr) -> Arc<RwLock<SslStream<UdpChannel>>> {
         println!("Getting acceptor channel for {:?}", remote_addr);
-        match self.channels.write().unwrap().entry(remote_addr.clone()) {
+        match self.streams.write().unwrap().entry(remote_addr.clone()) {
             Entry::Vacant(entry) => {
                 let socket = self.local_socket.try_clone().unwrap();
                 let channel = UdpChannel::new(socket, remote_addr.clone());
@@ -49,30 +56,6 @@ impl DtlsAcceptorSocket {
             Entry::Occupied(entry) => {
                 entry.get().clone()
             }
-        }
-    }
-
-    fn send(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, std::io::Error> {
-        println!("In acceptor send...");
-        let channel = self.get_channel(addr);
-        channel.clone().write().unwrap().write(buf)
-    }
-
-    fn receive(&self, buf: & mut [u8]) -> Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> {
-        println!("In acceptor receive...");
-        let mut peek_buf = [0; 10];
-        match self.local_socket.peek_from(&mut peek_buf) {
-            Ok((_, from)) => {
-                let channel = self.get_channel(from);
-                let size = channel.clone().write().unwrap().read(buf)?;
-                Poll::Ready(Ok((size, from, None)))
-            },
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut => {
-                    Poll::Pending
-                }
-                _ => Poll::Ready(Err(e)),
-            },
         }
     }
 }
