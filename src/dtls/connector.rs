@@ -69,20 +69,18 @@ impl DtlsConnectorSocket {
 
     fn receive(&self, buf: & mut [u8]) -> Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> {
         println!("In connector receive...");
-        let mut peek_buf = [0; 10];
-        match self.local_socket.peek_from(&mut peek_buf) {
-            Ok((_, from)) => {
-                let channel = self.get_channel(from);
-                let size = channel.clone().write().unwrap().read(buf)?;
-                Poll::Ready(Ok((size, from, None)))
-            },
-            Err(e) => match e.kind() {
-                std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut => {
-                    Poll::Pending
-                }
-                _ => Poll::Ready(Err(e)),
-            },
+        let mut status: Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> = Poll::Pending;
+        for (addr, channel) in self.channels.write().unwrap().iter_mut() {
+            channel.clone().write().unwrap().read(buf);
+            if buf.len() > 0 {
+                let decoded = String::from_utf8_lossy(buf);
+                println!("In connector receive {:?}: {:?}", addr, decoded);
+                status = Poll::Ready(Ok((buf.len(), addr.clone(), None)))
+            } else {
+                break
+            }
         }
+        status
     }
 }
 
