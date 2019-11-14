@@ -5,10 +5,10 @@ use futures::prelude::*;
 use std::sync::Arc;
 use tokio::executor::spawn;
 use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
-
-pub mod dtls;
 use dtls::connector::DtlsConnectorSocket;
 use async_coap::message::{OwnedImmutableMessage, MessageRead};
+
+pub mod dtls;
 
 fn ssl_connector() -> Result<SslConnector, std::io::Error> {
     let mut builder = SslConnector::builder(SslMethod::dtls())?;
