@@ -1,7 +1,7 @@
 use openssl::ssl::SslStream;
 use std::sync::{Arc, RwLock};
 use std::io::{Write, Read};
-use futures::{Poll, StreamExt};
+use futures::Poll;
 use std::net::{SocketAddr, UdpSocket};
 
 use log::trace;

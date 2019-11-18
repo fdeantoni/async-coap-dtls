@@ -1,5 +1,5 @@
 use futures::task::Context;
-use futures::{Poll, StreamExt};
+use futures::Poll;
 use std::net::{SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
 use std::pin::Pin;
 
