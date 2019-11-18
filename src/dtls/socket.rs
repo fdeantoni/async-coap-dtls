@@ -4,7 +4,7 @@ use std::io::{Write, Read};
 use futures::{Poll, StreamExt};
 use std::net::{SocketAddr, UdpSocket};
 
-use log::{info, trace, warn};
+use log::trace;
 
 use super::channel::UdpChannel;
 

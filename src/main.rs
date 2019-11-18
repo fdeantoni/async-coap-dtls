@@ -52,14 +52,11 @@ fn receive_handler<T: RespondableInboundContext>(context: &T) -> Result<(), Erro
 
 use std::sync::Arc;
 use futures::{prelude::*, executor::LocalPool, task::LocalSpawnExt};
-use async_coap::datagram::{DatagramLocalEndpoint, AllowStdUdpSocket, DatagramSocketTypes};
-//use async_coap::null::NullLocalEndpoint;
-use async_coap::message::MessageRead;
-use std::net::{SocketAddr, UdpSocket};
-//use std::borrow::Cow;
+use async_coap::datagram::DatagramLocalEndpoint;
+use std::net::UdpSocket;
 
 use std::io;
-use openssl::ssl::{SslAcceptor, SslConnector, SslMethod, SslVerifyMode, SslFiletype};
+use openssl::ssl::{SslAcceptor, SslMethod, SslFiletype};
 
 fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> {
     let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::dtls())?;
@@ -73,7 +70,6 @@ fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> 
 
 pub mod dtls;
 use dtls::acceptor::*;
-use dtls::connector::*;
 
 #[tokio::main]
 async fn main() {
@@ -85,8 +81,6 @@ async fn main() {
     let acceptor = ssl_acceptor(&certificate, &key).unwrap();
     let server_socket = DtlsAcceptorSocket::new(UdpSocket::bind("127.0.0.1:10000").unwrap(), acceptor);
 
-//    let socket = AllowStdUdpSocket::bind("127.0.0.1:0").expect("UDP bind failed");
-    let server_addr = server_socket.local_addr().unwrap();
     let server_endpoint = Arc::new(DatagramLocalEndpoint::new(server_socket));
     let mut pool = LocalPool::new();
 
@@ -97,58 +91,4 @@ async fn main() {
     ).unwrap();
 
     pool.run()
-
-//    let connector = ssl_connector().unwrap();
-//    let client_socket = DtlsConnectorSocket::bind(UdpSocket::bind("127.0.0.1:0").unwrap(), connector).unwrap();
-//
-//    let client_addr = client_socket.local_addr().unwrap();
-//    let client_endpoint = Arc::new(DatagramLocalEndpoint::new(client_socket));
-//
-//    let result = pool.run_until(
-//        client_endpoint.send(
-//            server_addr,
-//            CoapRequest::get()       // This is a CoAP GET request
-//                .uri_host_path(None, rel_ref!("test")) // Add a path to the message
-//                .emit_any_response(), // Return the first response we get
-//        )
-//    );
-//    println!("result: {:?}", result);
-//    let result = result.unwrap();
-//    assert_eq!(result.msg_code(), MsgCode::SuccessContent);
-//    assert_eq!(result.msg_type(), MsgType::Ack);
-//
-//
-//    let result = pool.run_until(
-//        client_endpoint.send(
-//            server_addr,
-//            CoapRequest::post()       // This is a CoAP POST request
-//                .uri_host_path(None, rel_ref!("test")) // Add a path to the message
-//                .emit_successful_response() // Return the first successful response we get
-//                .inspect(|cx| {
-//                    // Inspect here since we currently can't do
-//                    // a detailed check in the return value.
-//                    assert_eq!(cx.message().msg_code(), MsgCode::ClientErrorMethodNotAllowed);
-//                    assert_eq!(cx.message().msg_type(), MsgType::Ack);
-//                }),
-//        )
-//    );
-//    println!("result: {:?}", result);
-//    assert_eq!(result.err(), Some(Error::ClientRequestError));
-//
-//    let result = pool.run_until(
-//        client_endpoint.send(
-//            server_addr,
-//            CoapRequest::get()       // This is a CoAP GET request
-//                .emit_successful_response() // Return the first successful response we get
-//                .uri_host_path(None, rel_ref!("/foobar"))
-//                .inspect(|cx| {
-//                    // Inspect here since we currently can't do
-//                    // a detailed check in the return value.
-//                    assert_eq!(cx.message().msg_code(), MsgCode::ClientErrorNotFound);
-//                    assert_eq!(cx.message().msg_type(), MsgType::Ack);
-//                }),
-//        )
-//    );
-//    println!("result: {:?}", result);
-//    assert_eq!(result.err(), Some(Error::ResourceNotFound));
 }

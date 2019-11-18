@@ -5,7 +5,7 @@ use futures::task::Context;
 use futures::Poll;
 use std::pin::Pin;
 
-use log::{info, trace, warn};
+use log::trace;
 
 #[derive(Debug)]
 pub struct UdpChannel {

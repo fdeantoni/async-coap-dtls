@@ -1,6 +1,5 @@
 use async_coap::prelude::*;
 use async_coap::datagram::DatagramLocalEndpoint;
-use async_coap_tokio::TokioAsyncUdpSocket;
 use futures::prelude::*;
 use std::sync::Arc;
 use tokio::executor::spawn;
@@ -25,9 +24,6 @@ fn ssl_connector() -> Result<SslConnector, std::io::Error> {
 async fn main() {
 
     env_logger::init();
-
-//    let socket = TokioAsyncUdpSocket::bind("[::]:0").expect("UDP bind failed");
-//    let local_endpoint = Arc::new(DatagramLocalEndpoint::new(socket));
 
     let connector = ssl_connector().unwrap();
     let ssl_socket = DtlsConnectorSocket::new(std::net::UdpSocket::bind("127.0.0.1:9999").unwrap(), connector);

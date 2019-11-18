@@ -12,7 +12,7 @@ use async_coap::{ALL_COAP_DEVICES_HOSTNAME, ToSocketAddrs};
 use std::collections::hash_map::Entry;
 use std::sync::{Arc, RwLock};
 
-use log::{info, trace, warn};
+use log::trace;
 
 use super::channel::UdpChannel;
 use super::socket::*;
