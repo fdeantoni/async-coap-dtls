@@ -12,8 +12,9 @@ use async_coap::{ALL_COAP_DEVICES_HOSTNAME, ToSocketAddrs};
 use std::collections::hash_map::Entry;
 use std::sync::{Arc, RwLock};
 
-use super::channel::UdpChannel;
+use log::{info, trace, warn};
 
+use super::channel::UdpChannel;
 use super::socket::*;
 
 pub struct DtlsConnectorSocket {
@@ -26,7 +27,7 @@ impl DtlsConnectorSocket {
 
     pub fn bind(local_socket: UdpSocket, connector: SslConnector) -> std::io::Result<DtlsConnectorSocket> {
 
-        println!("Creating connector socket...");
+        trace!("Creating connector socket...");
 
         Ok(
             DtlsConnectorSocket {
@@ -46,18 +47,18 @@ impl DtlsSocket for DtlsConnectorSocket {
     }
 
     fn get_channel(&self, remote_addr: SocketAddr) -> Arc<RwLock<SslStream<UdpChannel>>> {
-        println!("Getting connector channel for {:?}", remote_addr);
+        trace!("Getting connector channel for {:?}", remote_addr);
         let channel = match self.streams.write().unwrap().entry(remote_addr.clone()) {
             Entry::Vacant(entry) => {
-                println!("No entry found, creating new one...");
+                trace!("No entry found, creating new one...");
                 let socket = self.local_socket.try_clone().unwrap();
-                println!("Creating channel...");
+                trace!("Creating channel...");
                 let channel = UdpChannel::new(socket, remote_addr.clone());
-                println!("Creating connection stream...");
+                trace!("Creating connection stream...");
                 let conn = self.connector.connect("127.0.0.1",channel).unwrap();
-                println!("Creating arced stream");
+                trace!("Creating arced stream");
                 let stream = Arc::new( RwLock::new(conn));
-                println!("Connector stream created with {:?}", stream);
+                trace!("Connector stream created with {:?}", stream);
                 entry.insert(stream).clone()
             }
             // Cache hit - return value
@@ -65,7 +66,7 @@ impl DtlsSocket for DtlsConnectorSocket {
                 entry.get().clone()
             }
         };
-        println!("Got connector channel {:?}", channel);
+        trace!("Got connector channel {:?}", channel);
         channel
     }
 }

@@ -4,6 +4,8 @@ use std::io::{Write, Read};
 use futures::{Poll, StreamExt};
 use std::net::{SocketAddr, UdpSocket};
 
+use log::{info, trace, warn};
+
 use super::channel::UdpChannel;
 
 pub trait DtlsSocket {
@@ -13,13 +15,13 @@ pub trait DtlsSocket {
     fn get_channel(&self, remote_addr: SocketAddr) -> Arc<RwLock<SslStream<UdpChannel>>>;
 
     fn send(&self, buf: &[u8], addr: SocketAddr) -> Result<usize, std::io::Error> {
-        println!("In connector send....");
+        trace!("In send....");
         let channel = self.get_channel(addr);
         channel.clone().write().unwrap().write(buf)
     }
 
     fn receive(&self, buf: &mut [u8]) -> Poll<Result<(usize, SocketAddr, Option<SocketAddr>), std::io::Error>> {
-        println!("In connector receive...");
+        trace!("In receive...");
         let mut peek_buf = [0; 10];
         match self.get_socket().peek_from(&mut peek_buf) {
             Ok((_, from)) => {
@@ -92,8 +94,10 @@ macro_rules! dtls_socket {
                     B: ToSocketAddrs<SocketAddr = Self::SocketAddr, Error = Self::Error>,
             {
                 if let Some(addr) = addr.to_socket_addrs()?.next() {
-                    let decoded = String::from_utf8_lossy(buf);
-                    println!("In acceptor poll_send_to {:?}: {:?}", addr, decoded);
+                    if log_enabled!(log::Level::Trace) {
+                        let decoded = String::from_utf8_lossy(buf);
+                        trace!("In poll_send_to {:?}: {:?}", addr, decoded);
+                    }
                     match self.send(buf, addr) {
                         Ok(written) => Poll::Ready(Ok(written)),
                         Err(e) => {
@@ -117,7 +121,7 @@ macro_rules! dtls_socket {
                     B: ToSocketAddrs<SocketAddr = Self::SocketAddr, Error = Self::Error>,
             {
                 if let Some(addr) = addr.to_socket_addrs()?.next() {
-                    println!("In acceptor send_to {:?}: {:?}", addr, buf);
+                    trace!("In acceptor send_to {:?}: {:?}", addr, buf);
                     self.send(buf, addr)
                 } else {
                     Err(std::io::Error::new(

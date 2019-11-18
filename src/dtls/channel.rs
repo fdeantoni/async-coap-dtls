@@ -5,6 +5,8 @@ use futures::task::Context;
 use futures::Poll;
 use std::pin::Pin;
 
+use log::{info, trace, warn};
+
 #[derive(Debug)]
 pub struct UdpChannel {
     local_socket: UdpSocket,
@@ -13,14 +15,14 @@ pub struct UdpChannel {
 
 impl Read for UdpChannel {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        println!("Reading from {:?}", self.remote_addr);
+        trace!("Reading from {:?}", self.remote_addr);
         self.local_socket.recv(buf)
     }
 }
 
 impl Write for UdpChannel {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        println!("Writing to {:?}", self.remote_addr);
+        trace!("Writing to {:?}", self.remote_addr);
         self.local_socket.send_to(buf, self.remote_addr)
     }
 

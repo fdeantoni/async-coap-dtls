@@ -12,8 +12,10 @@ use async_coap::{ALL_COAP_DEVICES_HOSTNAME, ToSocketAddrs};
 use std::collections::hash_map::Entry;
 use std::sync::{Arc, RwLock};
 
+use log::{info, trace, warn};
+
 use super::channel::UdpChannel;
-use crate::dtls::socket::DtlsSocket;
+use super::socket::DtlsSocket;
 
 pub struct DtlsAcceptorSocket {
     local_socket: UdpSocket,
@@ -25,7 +27,7 @@ impl DtlsAcceptorSocket {
 
     pub fn bind(local_socket: UdpSocket, acceptor: SslAcceptor) -> std::io::Result<DtlsAcceptorSocket> {
 
-        println!("Creating acceptor dtls socket...");
+        trace!("Creating acceptor dtls socket...");
 
         Ok(
             DtlsAcceptorSocket {
@@ -44,7 +46,7 @@ impl DtlsSocket for DtlsAcceptorSocket {
     }
 
     fn get_channel(&self, remote_addr: SocketAddr) -> Arc<RwLock<SslStream<UdpChannel>>> {
-        println!("Getting acceptor channel for {:?}", remote_addr);
+        trace!("Getting acceptor channel for {:?}", remote_addr);
         match self.streams.write().unwrap().entry(remote_addr.clone()) {
             Entry::Vacant(entry) => {
                 let socket = self.local_socket.try_clone().unwrap();
@@ -54,7 +56,7 @@ impl DtlsSocket for DtlsAcceptorSocket {
             }
             // Cache hit - return value
             Entry::Occupied(entry) => {
-                entry.get().clone()
+                entry.remove()
             }
         }
     }

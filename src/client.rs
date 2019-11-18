@@ -7,6 +7,10 @@ use tokio::executor::spawn;
 use openssl::ssl::{SslConnector, SslMethod, SslVerifyMode};
 use dtls::connector::DtlsConnectorSocket;
 use async_coap::message::{OwnedImmutableMessage, MessageRead};
+use std::process::exit;
+
+#[macro_use]
+extern crate log;
 
 pub mod dtls;
 
@@ -20,11 +24,13 @@ fn ssl_connector() -> Result<SslConnector, std::io::Error> {
 #[tokio::main]
 async fn main() {
 
+    env_logger::init();
+
 //    let socket = TokioAsyncUdpSocket::bind("[::]:0").expect("UDP bind failed");
 //    let local_endpoint = Arc::new(DatagramLocalEndpoint::new(socket));
 
     let connector = ssl_connector().unwrap();
-    let ssl_socket = DtlsConnectorSocket::bind(std::net::UdpSocket::bind("127.0.0.1:0").unwrap(), connector).unwrap();
+    let ssl_socket = DtlsConnectorSocket::bind(std::net::UdpSocket::bind("127.0.0.1:9999").unwrap(), connector).unwrap();
     let local_endpoint = Arc::new(DatagramLocalEndpoint::new(ssl_socket));
 
     spawn(
@@ -55,4 +61,6 @@ async fn main() {
     let payload = String::from_utf8_lossy(result.payload());
 
     println!("result: {:?}", payload.trim_end_matches(char::from(0)));
+
+    exit(0)
 }

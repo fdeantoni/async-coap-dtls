@@ -1,19 +1,18 @@
-# Actix COAP Server
+# DTLS COAP Server and Client
 
-Actix based [Constrained Application Protocol(CoAP)](https://tools.ietf.org/html/rfc7252) Server.
+An example [Constrained Application Protocol(CoAP)](https://tools.ietf.org/html/rfc7252) Server 
+and client using [rust-async-coap](https://github.com/google/rust-async-coap).
 
 ## Usage
 
 ### server
 
 ```bash
-cargo run
-# Started http server: 127.0.0.1:12345
+$ RUST_LOG=trace cargo +nightly run --bin coap-server
 ```
 
-### socat client
-Copy port provided in server output and run following command to communicate
-with the udp server:
+### client
+
 ```bash
-socat - UDP4:localhost:12345
+RUST_LOG=trace cargo +nightly run --bin coap-client
 ```

@@ -5,6 +5,9 @@ use core::fmt::Write;
 use core::borrow::Borrow;
 use option::CONTENT_FORMAT;
 
+#[macro_use]
+extern crate log;
+
 fn receive_handler<T: RespondableInboundContext>(context: &T) -> Result<(), Error> {
     let msg = context.message();
     let uri = msg.options().extract_uri()?;
@@ -81,6 +84,8 @@ use dtls::connector::*;
 
 #[tokio::main]
 async fn main() {
+
+    env_logger::init();
 
     let certificate = String::from("test/cert.pem");
     let key = String::from("test/key.pem");
