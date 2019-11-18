@@ -30,7 +30,7 @@ async fn main() {
 //    let local_endpoint = Arc::new(DatagramLocalEndpoint::new(socket));
 
     let connector = ssl_connector().unwrap();
-    let ssl_socket = DtlsConnectorSocket::bind(std::net::UdpSocket::bind("127.0.0.1:9999").unwrap(), connector).unwrap();
+    let ssl_socket = DtlsConnectorSocket::new(std::net::UdpSocket::bind("127.0.0.1:9999").unwrap(), connector);
     let local_endpoint = Arc::new(DatagramLocalEndpoint::new(ssl_socket));
 
     spawn(

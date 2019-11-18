@@ -25,19 +25,16 @@ pub struct DtlsConnectorSocket {
 
 impl DtlsConnectorSocket {
 
-    pub fn bind(local_socket: UdpSocket, connector: SslConnector) -> std::io::Result<DtlsConnectorSocket> {
+    pub fn new(local_socket: UdpSocket, connector: SslConnector) -> Self {
 
         trace!("Creating connector socket...");
 
-        Ok(
-            DtlsConnectorSocket {
-                local_socket,
-                connector,
-                streams: Arc::new(RwLock::new(HashMap::new()))
-            }
-        )
+        DtlsConnectorSocket {
+            local_socket,
+            connector,
+            streams: Arc::new(RwLock::new(HashMap::new()))
+        }
     }
-
 }
 
 impl DtlsSocket for DtlsConnectorSocket {

@@ -25,17 +25,15 @@ pub struct DtlsAcceptorSocket {
 
 impl DtlsAcceptorSocket {
 
-    pub fn bind(local_socket: UdpSocket, acceptor: SslAcceptor) -> std::io::Result<DtlsAcceptorSocket> {
+    pub fn new(local_socket: UdpSocket, acceptor: SslAcceptor) -> Self {
 
         trace!("Creating acceptor dtls socket...");
 
-        Ok(
-            DtlsAcceptorSocket {
-                local_socket,
-                acceptor,
-                streams: Arc::new(RwLock::new(HashMap::new()))
-            }
-        )
+        DtlsAcceptorSocket {
+            local_socket,
+            acceptor,
+            streams: Arc::new(RwLock::new(HashMap::new()))
+        }
     }
 }
 

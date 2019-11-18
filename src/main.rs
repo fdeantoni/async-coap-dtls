@@ -61,13 +61,6 @@ use std::net::{SocketAddr, UdpSocket};
 use std::io;
 use openssl::ssl::{SslAcceptor, SslConnector, SslMethod, SslVerifyMode, SslFiletype};
 
-fn ssl_connector() -> Result<SslConnector, io::Error> {
-    let mut builder = SslConnector::builder(SslMethod::dtls())?;
-    builder.set_verify(SslVerifyMode::NONE);
-    let connector = builder.build();
-    Ok(connector)
-}
-
 fn ssl_acceptor(certificate: &str, key: &str) -> Result<SslAcceptor, io::Error> {
     let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::dtls())?;
     builder
@@ -90,7 +83,7 @@ async fn main() {
     let certificate = String::from("test/cert.pem");
     let key = String::from("test/key.pem");
     let acceptor = ssl_acceptor(&certificate, &key).unwrap();
-    let server_socket = DtlsAcceptorSocket::bind(UdpSocket::bind("127.0.0.1:10000").unwrap(), acceptor).unwrap();
+    let server_socket = DtlsAcceptorSocket::new(UdpSocket::bind("127.0.0.1:10000").unwrap(), acceptor);
 
 //    let socket = AllowStdUdpSocket::bind("127.0.0.1:0").expect("UDP bind failed");
     let server_addr = server_socket.local_addr().unwrap();
